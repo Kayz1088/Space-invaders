@@ -119,11 +119,11 @@ def main():
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] and player.x -  player_vel > 0: #left
             player.x -= player_vel
-        if keys[pygame.K_d] and player.x +  player_vel + player.get_width < WIDTH: #right
+        if keys[pygame.K_d] and player.x +  player_vel + player.get_width() < WIDTH: #right
             player.x += player_vel
         if keys[pygame.K_w] and player.y -  player_vel > 0 : #up
             player.y -= player_vel
-        if keys[pygame.K_s] and player.y +  player_vel + player.get_height < HEIGHT: # down
+        if keys[pygame.K_s] and player.y +  player_vel + player.get_height() < HEIGHT: # down
             player.y += player_vel
         
         for enemy in enemies[:]:
