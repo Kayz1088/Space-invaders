@@ -5,5 +5,4 @@ Player Controls
     - A = left
     - S = down
     - D = right
-
-Space = shoot
+    - Space = shoot
