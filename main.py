@@ -109,8 +109,16 @@ class Player(Ship):
                 for obj in objs:
                     if laser.collision(obj):                    
                         objs.remove(obj)
-                        self.lasers.remove(laser)
+                        if laser in self.lasers:
+                            self.lasers.remove(laser)
+    
+    def draw(self, window):
+        super().draw(window)
+        self.healthbar(window)
 
+    def healthbar(self, window):
+        pygame.draw.rect(window, (255,0,0), (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width(), 10 ))
+        pygame.draw.rect(window, (0,255,0), (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health/self.max_health), 10 ))
 class Enemy(Ship):
     COLOR_MAP = {
         "red": (RED_SPACE_SHIP, RED_LASER),
@@ -125,6 +133,12 @@ class Enemy(Ship):
 
     def move(self, vel):
         self.y += vel
+    
+    def shoot(self):
+        if self.cooldown_counter == 0:
+            laser = Laser(self.x - 20, self.y, self.laser_img)
+            self.lasers.append(laser)
+            self.cooldown_counter = 1
 
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
@@ -136,6 +150,7 @@ def main():
     FPS = 60
     level = 0
     lives = 5
+    score = 0
     lost = False
     lost_counter = 0    
     main_font = pygame.font.SysFont("impact", 30)
@@ -145,7 +160,7 @@ def main():
     wave_length = 5
     enemy_vel = 1 
 
-    player = Player(300, 650)
+    player = Player(300, 630)
     player_vel = 5
     laser_vel = 4
 
@@ -156,9 +171,11 @@ def main():
         #draw text
         lives_label = main_font.render(f"Lives: {lives}", 1, (0,0,255))
         level_label = main_font.render(f"Level: {level}", 1, (0,0,255))
+        score_label = main_font.render(f"Score: {score}", 1, (0,0,255))
 
         WIN.blit(level_label, (10, 10))
         WIN.blit(lives_label, (WIDTH - level_label.get_width() - 10, 10))
+        WIN.blit(score_label, (WIDTH - level_label.get_width() - score_label.get_width() - 30, 10))
 
         for enemy in enemies:
             enemy.draw(WIN)
@@ -194,7 +211,7 @@ def main():
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False 
+                quit() 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] and player.x -  player_vel > 0: #left
             player.x -= player_vel
@@ -202,7 +219,7 @@ def main():
             player.x += player_vel
         if keys[pygame.K_w] and player.y -  player_vel > 0 : #up
             player.y -= player_vel
-        if keys[pygame.K_s] and player.y +  player_vel + player.get_height() < HEIGHT: # down
+        if keys[pygame.K_s] and player.y +  player_vel + player.get_height() + 10 < HEIGHT: # down
             player.y += player_vel
         if keys[pygame.K_SPACE]:
             player.shoot()
@@ -210,13 +227,35 @@ def main():
         for enemy in enemies[:]:
             enemy.move(enemy_vel)
             enemy.move_lasers(laser_vel, player)
-            if enemy.y + enemy.get_height() > HEIGHT:
+
+            if random.randrange(0, 2*60) == 1:
+                enemy.shoot()
+            
+            if collide(enemy, player):
+                player.health -= 10
+                enemies.remove(enemy)
+
+            elif enemy.y + enemy.get_height() > HEIGHT:
                 lives -= 1
                 enemies.remove(enemy)
 
-
+            
         player.move_lasers(-laser_vel, enemies)
         
+def main_menu():
+    title_font = pygame.font.SysFont("impact", 70)
+    run = True
 
+    while run:
+        WIN.blit(BG, (0,0))
+        title_label = title_font.render("Press the mouse to begin", 1 , (0,0,255))
+        WIN.blit(title_label, (WIDTH/2 - title_label.get_width()/2, 350))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                main()
+    pygame.quit()
 
-main()
+main_menu()
