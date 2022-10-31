@@ -109,9 +109,10 @@ class Player(Ship):
                 for obj in objs:
                     if laser.collision(obj):                    
                         objs.remove(obj)
+                                         
                         if laser in self.lasers:
                             self.lasers.remove(laser)
-    
+
     def draw(self, window):
         super().draw(window)
         self.healthbar(window)
@@ -151,6 +152,7 @@ def main():
     level = 0
     lives = 5
     score = 0
+    free_life = 1000
     lost = False
     lost_counter = 0    
     main_font = pygame.font.SysFont("impact", 30)
@@ -191,8 +193,14 @@ def main():
     while run:
         clock.tick(FPS)
         redraw_window()
-
-        if lives <= 0 or player.health <= 0:
+        if score >= free_life:
+            lives += 1
+            free_life += 1000
+        
+        if player.health <= 0:
+            lives -= 1
+            player.health = 100
+        if lives <= 0 :
             lost = True
             lost_counter += 1
 
@@ -204,6 +212,8 @@ def main():
 
         if len(enemies) == 0:
             level += 1
+            if level >= 2:
+                score += 300
             wave_length += 2
             for i in range(wave_length):
                 enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red", "blue", "green"]))
@@ -233,6 +243,7 @@ def main():
             
             if collide(enemy, player):
                 player.health -= 10
+                score += 50
                 enemies.remove(enemy)
 
             elif enemy.y + enemy.get_height() > HEIGHT:
@@ -241,6 +252,7 @@ def main():
 
             
         player.move_lasers(-laser_vel, enemies)
+        
         
 def main_menu():
     title_font = pygame.font.SysFont("impact", 70)
